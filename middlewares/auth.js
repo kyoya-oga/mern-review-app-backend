@@ -5,6 +5,7 @@ const User = require('../models/user');
 exports.isAuth = async (req, res, next) => {
   const token = req.headers?.authorization;
 
+  if (!token) return sendError(res, 'Invalid token');
   const jwtToken = token.split('Bearer ')[1];
 
   if (!jwtToken) return sendError(res, 'Invalid token');
@@ -15,5 +16,12 @@ exports.isAuth = async (req, res, next) => {
   if (!user) return sendError(res, 'User not found', 404);
 
   req.user = user;
+  next();
+};
+
+exports.isAdmin = async (req, res, next) => {
+  const { user } = req;
+
+  if (user.role !== 'admin') return sendError(res, 'unauthorized access');
   next();
 };
