@@ -21,7 +21,7 @@ exports.createActor = async (req, res) => {
 
   await newActor.save();
 
-  res.status(201).json(formatActor(newActor));
+  res.status(201).json({ actor: formatActor(newActor) });
 };
 
 exports.updateActor = async (req, res) => {
