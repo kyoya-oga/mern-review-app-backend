@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const genres = require("../utils/genres");
+const mongoose = require('mongoose');
+const genres = require('../utils/genres');
 
 const movieScheme = mongoose.Schema(
   {
@@ -15,7 +15,7 @@ const movieScheme = mongoose.Schema(
     },
     director: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Actor",
+      ref: 'Actor',
     },
     releaseDate: {
       type: Date,
@@ -24,7 +24,7 @@ const movieScheme = mongoose.Schema(
     status: {
       type: String,
       required: true,
-      enum: ["public", "private"],
+      enum: ['public', 'private'],
     },
     type: {
       type: String,
@@ -41,7 +41,7 @@ const movieScheme = mongoose.Schema(
     },
     cast: [
       {
-        actor: { type: mongoose.Schema.Types.ObjectId, ref: "Actor" },
+        actor: { type: mongoose.Schema.Types.ObjectId, ref: 'Actor' },
         roleAs: String,
         leadActor: Boolean,
       },
@@ -49,7 +49,7 @@ const movieScheme = mongoose.Schema(
     writers: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Actor",
+        ref: 'Actor',
       },
     ],
     poster: {
@@ -65,7 +65,7 @@ const movieScheme = mongoose.Schema(
       public_id: { type: String, required: true },
       required: true,
     },
-    reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
+    reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
     language: {
       type: String,
       required: true,
@@ -74,4 +74,4 @@ const movieScheme = mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Movie", movieScheme);
+module.exports = mongoose.model('Movie', movieScheme);
