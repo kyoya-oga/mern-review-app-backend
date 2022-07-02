@@ -6,6 +6,7 @@ const {
   getMovies,
   getMovieForUpdate,
   updateMovie,
+  searchMovies,
 } = require('../controllers/movie');
 const { isAuth, isAdmin } = require('../middlewares/auth');
 const { parseData } = require('../middlewares/helper');
@@ -59,5 +60,6 @@ router.patch(
 router.delete('/:movieId', isAuth, isAdmin, removeMovie);
 router.get('/movies', isAuth, isAdmin, getMovies);
 router.get('/for-update/:movieId', isAuth, isAdmin, getMovieForUpdate);
+router.get('/search', isAuth, isAdmin, searchMovies);
 
 module.exports = router;
