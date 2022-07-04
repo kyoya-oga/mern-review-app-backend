@@ -1,5 +1,11 @@
 const cloudinary = require('../cloud');
-const { sendError, formatActor } = require('../utils/helper');
+const {
+  sendError,
+  formatActor,
+  relatedMovieAggregation,
+  getAverageRatings,
+  topRatedMoviesPipeline,
+} = require('../utils/helper');
 const Movie = require('../models/movie');
 const { isValidObjectId } = require('mongoose');
 
@@ -359,4 +365,133 @@ exports.searchMovies = async (req, res) => {
       };
     }),
   });
+};
+
+exports.getLatestUploads = async (req, res) => {
+  const { limit = 5 } = req.query;
+
+  const results = await Movie.find({ status: 'public' })
+    .sort('-createdAt')
+    .limit(parseInt(limit));
+
+  const movies = results.map((m) => {
+    return {
+      id: m._id,
+      title: m.title,
+      storyLine: m.storyLine,
+      poster: m.poster?.url,
+      trailer: m.trailer?.url,
+    };
+  });
+
+  res.json({ movies });
+};
+
+exports.getSingleMovie = async (req, res) => {
+  const { movieId } = req.params;
+
+  if (!isValidObjectId(movieId)) return sendError(res, 'Invalid movie id');
+
+  const movie = await Movie.findById(movieId).populate(
+    'director writers cast.actor'
+  );
+
+  const reviews = await getAverageRatings(movie._id);
+
+  const {
+    _id: id,
+    title,
+    storyLine,
+    cast,
+    writers,
+    director,
+    releaseDate,
+    genres,
+    tags,
+    language,
+    poster,
+    trailer,
+    type,
+  } = movie;
+
+  res.json({
+    movie: {
+      id,
+      title,
+      storyLine,
+      releaseDate,
+      genres,
+      tags,
+      language,
+      type,
+      poster: poster?.url,
+      trailer: trailer?.url,
+      cast: cast.map((c) => ({
+        id: c._id,
+        profile: {
+          id: c.actor._id,
+          name: c.actor.name,
+          avatar: c.actor?.avatar?.url,
+        },
+        leadActor: c.leadActor,
+        roleAs: c.roleAs,
+      })),
+      writers: writers.map((w) => ({
+        id: w._id,
+        name: w.name,
+      })),
+      director: {
+        id: director._id,
+        name: director.name,
+      },
+      reviews: { ...reviews },
+    },
+  });
+};
+
+exports.getRelatedMovies = async (req, res) => {
+  const { movieId } = req.params;
+  if (!isValidObjectId(movieId)) return sendError(res, 'Invalid movie id');
+
+  const movie = await Movie.findById(movieId);
+
+  const movies = await Movie.aggregate(
+    relatedMovieAggregation(movie.tags, movie._id)
+  );
+
+  const mapMovies = async (m) => {
+    const reviews = await getAverageRatings(m._id);
+
+    return {
+      id: m._id,
+      title: m.title,
+      poster: m.poster,
+      reviews: { ...reviews },
+    };
+  };
+
+  const relatedMovies = await Promise.all(movies.map(mapMovies));
+
+  res.json({ relatedMovies });
+};
+
+exports.getTopRatedMovies = async (req, res) => {
+  const { type = 'Film' } = req.query;
+
+  const movies = await Movie.aggregate(topRatedMoviesPipeline(type));
+
+  const mapMovies = async (m) => {
+    const reviews = await getAverageRatings(m._id);
+
+    return {
+      id: m._id,
+      title: m.title,
+      poster: m.poster,
+      reviews: { ...reviews },
+    };
+  };
+
+  const topRatedMovies = await Promise.all(movies.map(mapMovies));
+
+  res.json({ movies: topRatedMovies });
 };
