@@ -54,3 +54,48 @@ exports.updateReview = async (req, res) => {
 
   res.json({ message: 'Your review updated successfully' });
 };
+
+exports.removeReview = async (req, res) => {
+  const { reviewId } = req.params;
+  const userId = req.user._id;
+
+  if (!isValidObjectId(reviewId)) return sendError(res, 'Invalid review');
+
+  const review = await Review.findOne({ _id: reviewId, owner: userId });
+  if (!review) return sendError(res, 'Review not found', 404);
+
+  // remove review from movie
+  const movie = await Movie.findById(review.parentMovie).select('reviews');
+  movie.reviews = movie.reviews.filter((rId) => rId.toString() !== reviewId);
+
+  await movie.save();
+  await Review.findByIdAndDelete(reviewId);
+
+  res.json({ message: 'Review removed successfully' });
+};
+
+exports.getReviewsByMovie = async (req, res) => {
+  const { movieId } = req.params;
+
+  if (!isValidObjectId(movieId)) return sendError(res, 'Invalid movie');
+
+  const movie = await Movie.findById(movieId)
+    .populate({
+      path: 'reviews',
+      populate: { path: 'owner', select: 'name' },
+    })
+    .select('reviews');
+
+  const reviews = movie.reviews.map((r) => {
+    const { owner, content, rating, _id: reviewId } = r;
+    const { name, _id: ownerId } = owner;
+    return {
+      id: reviewId,
+      owner: { name, id: ownerId },
+      content,
+      rating,
+    };
+  });
+
+  res.json({ reviews });
+};
