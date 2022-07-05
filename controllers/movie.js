@@ -472,7 +472,7 @@ exports.getRelatedMovies = async (req, res) => {
 
   const relatedMovies = await Promise.all(movies.map(mapMovies));
 
-  res.json({ relatedMovies });
+  res.json({ movies: relatedMovies });
 };
 
 exports.getTopRatedMovies = async (req, res) => {
