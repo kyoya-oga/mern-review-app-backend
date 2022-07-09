@@ -1,12 +1,15 @@
 const { isValidObjectId } = require('mongoose');
 const Movie = require('../models/movie');
 const Review = require('../models/review');
-const { sendError } = require('../utils/helper');
+const { sendError, getAverageRatings } = require('../utils/helper');
 
 exports.addReview = async (req, res) => {
   const { movieId } = req.params;
   const { content, rating } = req.body;
   const userId = req.user._id;
+
+  if (!req.user.isVerified)
+    return sendError(res, 'Please verify your email first!', 401);
 
   if (!isValidObjectId(movieId)) return sendError(res, 'Invalid movie');
 
@@ -34,7 +37,9 @@ exports.addReview = async (req, res) => {
   // save review
   await newReview.save();
 
-  res.json({ message: 'Your review added successfully' });
+  const reviews = await getAverageRatings(movie._id);
+
+  res.json({ message: 'Your review added successfully', reviews });
 };
 
 exports.updateReview = async (req, res) => {
@@ -84,7 +89,7 @@ exports.getReviewsByMovie = async (req, res) => {
       path: 'reviews',
       populate: { path: 'owner', select: 'name' },
     })
-    .select('reviews');
+    .select('reviews title');
 
   const reviews = movie.reviews.map((r) => {
     const { owner, content, rating, _id: reviewId } = r;
@@ -97,5 +102,5 @@ exports.getReviewsByMovie = async (req, res) => {
     };
   });
 
-  res.json({ reviews });
+  res.json({ movie: { title: movie.title, reviews } });
 };

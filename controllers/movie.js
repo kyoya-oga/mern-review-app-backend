@@ -102,8 +102,10 @@ exports.createMovie = async (req, res) => {
   await newMovie.save();
 
   res.status(201).json({
-    id: newMovie._id,
-    title,
+    movie: {
+      id: newMovie._id,
+      title,
+    },
   });
 };
 
@@ -305,6 +307,7 @@ exports.getMovies = async (req, res) => {
       id: movie._id,
       title: movie.title,
       poster: movie.poster?.url,
+      responsivePosters: movie.poster?.responsive,
       genres: movie.genres,
       status: movie.status,
     };
@@ -380,6 +383,7 @@ exports.getLatestUploads = async (req, res) => {
       title: m.title,
       storyLine: m.storyLine,
       poster: m.poster?.url,
+      responsivePosters: m.poster?.responsive,
       trailer: m.trailer?.url,
     };
   });
@@ -466,6 +470,7 @@ exports.getRelatedMovies = async (req, res) => {
       id: m._id,
       title: m.title,
       poster: m.poster,
+      responsivePosters: m.responsivePosters,
       reviews: { ...reviews },
     };
   };
@@ -487,6 +492,7 @@ exports.getTopRatedMovies = async (req, res) => {
       id: m._id,
       title: m.title,
       poster: m.poster,
+      responsivePosters: m.responsivePosters,
       reviews: { ...reviews },
     };
   };
@@ -494,4 +500,33 @@ exports.getTopRatedMovies = async (req, res) => {
   const topRatedMovies = await Promise.all(movies.map(mapMovies));
 
   res.json({ movies: topRatedMovies });
+};
+
+exports.searchPublicMovies = async (req, res) => {
+  const { title } = req.query;
+
+  if (!title.trim()) return sendError(res, 'Invalid request');
+
+  const movies = await Movie.find({
+    title: { $regex: title, $options: 'i' },
+    status: 'public',
+  });
+
+  const mapMovies = async (m) => {
+    const reviews = await getAverageRatings(m._id);
+
+    return {
+      id: m._id,
+      title: m.title,
+      poster: m.poster?.url,
+      responsivePosters: m.poster?.responsive,
+      reviews: { ...reviews },
+    };
+  };
+
+  const results = await Promise.all(movies.map(mapMovies));
+
+  res.json({
+    results,
+  });
 };
