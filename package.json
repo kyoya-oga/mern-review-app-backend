@@ -4,7 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "node app.js",
+    "dev": "nodemon app.js"
   },
   "keywords": [],
   "author": "kyd",
@@ -25,5 +26,9 @@
   },
   "devDependencies": {
     "nodemon": "^2.0.16"
+  },
+  "engines": {
+    "node": "16.x",
+    "npm": "8.x"
   }
 }
