@@ -28,6 +28,7 @@ exports.create = async (req, res) => {
   });
   await newEmailValidationToken.save();
 
+  //? mailtrap settings
   // const transport = generateMailTransporter();
 
   // transport.sendMail({
@@ -81,6 +82,7 @@ exports.verifyEmail = async (req, res) => {
 
   await emailVerificationToken.findByIdAndDelete(token._id);
 
+  //? mailtrap settings
   // const transport = generateMailTransporter();
 
   // transport.sendMail({
@@ -138,6 +140,7 @@ exports.resendEmailVerificationToken = async (req, res) => {
   });
   await newEmailValidationToken.save();
 
+  //? mailtrap settings
   // const transport = generateMailTransporter();
 
   // transport.sendMail({
@@ -185,6 +188,7 @@ exports.forgetPassword = async (req, res) => {
 
   const resetPasswordUrl = `https://mern-review-app-frontend.pages.dev/auth/reset-password?token=${token}&id=${user._id}`;
 
+  //? mailtrap settings
   // const transport = generateMailTransporter();
 
   // transport.sendMail({
